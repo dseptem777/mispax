@@ -1,0 +1,948 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FBF7F2">
+<title>ConTemplo PAX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --fondo: #FBF7F2; --tinta: #1F1A17; --suave: #6B5E54; --medio: #5A4E45;
+  --linea: #EDE3D7; --borde: #E4D9CC; --tarjeta: #fff; --gris: #F4EEE7; --seg: #F1E9DF;
+  --acento: #9A4417; --acento-osc: #7A3512;
+  --ok-f: #E8F2F1; --ok-b: #C5DEDB; --ok: #1B5E5A;
+  --av-f: #FFF1E6; --av-b: #F2D3B8; --av: #8A3B12;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--fondo); color: var(--tinta); font: 16px/1.4 Figtree, system-ui, -apple-system, sans-serif; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: var(--acento); }
+#app { max-width: 560px; margin: 0 auto; min-height: 100vh; padding: 0 16px calc(96px + env(safe-area-inset-bottom)); }
+header { padding: 18px 0 10px; display: flex; flex-direction: column; gap: 4px; }
+.fila { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; overflow-wrap: anywhere; }
+h2 { margin: 18px 0 8px; font-size: 13px; font-weight: 700; color: var(--suave); text-transform: uppercase; letter-spacing: .06em; }
+.sub { font-size: 14px; color: var(--suave); }
+.icono { width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; background: none; border: 0; color: var(--medio); border-radius: 12px; flex-shrink: 0; }
+.txtbtn { background: none; border: 0; min-height: 44px; padding: 0 6px; font-weight: 600; color: var(--medio); }
+.tarjeta { background: var(--tarjeta); border: 1px solid var(--linea); border-radius: 14px; padding: 12px 14px; }
+.lista { display: flex; flex-direction: column; gap: 8px; }
+.item { display: flex; flex-direction: column; gap: 8px; width: 100%; text-align: left; background: var(--tarjeta); border: 1px solid var(--linea); border-radius: 14px; padding: 12px 14px; }
+.item:active { background: var(--gris); }
+.nombre { font-weight: 700; font-size: 16px; overflow-wrap: anywhere; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 8px; background: var(--gris); color: var(--medio); }
+.chip.ok { background: var(--ok-f); color: var(--ok); }
+.chip.av { background: var(--av-f); color: var(--av); }
+.monto-ok { font-weight: 700; font-size: 14px; color: var(--ok); white-space: nowrap; }
+.monto-av { font-weight: 700; font-size: 14px; color: var(--av); white-space: nowrap; }
+.kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 6px 0 14px; }
+.kpi { background: var(--tarjeta); border: 1px solid var(--linea); border-radius: 14px; padding: 10px 12px; min-width: 0; }
+.kpi .k { font-size: 12px; font-weight: 700; color: var(--suave); }
+.kpi .v { font-size: 22px; font-weight: 800; overflow-wrap: anywhere; }
+.kpi.av { background: var(--av-f); border-color: var(--av-b); } .kpi.av .k, .kpi.av .v { color: var(--av); }
+.kpi.ok { background: var(--ok-f); border-color: var(--ok-b); } .kpi.ok .k, .kpi.ok .v { color: var(--ok); }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.tab { min-height: 40px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--borde); background: var(--tarjeta); font-weight: 600; font-size: 14px; color: #3D332C; }
+.tab[aria-pressed="true"] { background: var(--tinta); border-color: var(--tinta); color: #fff; }
+.tab span { opacity: .75; margin-left: 4px; }
+.seg { display: grid; gap: 4px; background: var(--seg); padding: 4px; border-radius: 12px; }
+.seg button { min-height: 42px; border: 0; border-radius: 9px; background: transparent; font-weight: 600; font-size: 14px; color: var(--medio); padding: 0 4px; }
+.seg button[aria-pressed="true"] { background: var(--tinta); color: #fff; font-weight: 700; }
+.seg button:disabled { opacity: .5; }
+.prim { width: 100%; min-height: 52px; border-radius: 14px; border: 0; background: var(--acento); color: #fff; font-weight: 700; font-size: 16px; }
+.prim:disabled { opacity: .6; }
+.secu { width: 100%; min-height: 48px; border-radius: 14px; border: 1px solid var(--borde); background: var(--tarjeta); font-weight: 700; font-size: 15px; color: var(--tinta); }
+.punteado { width: 100%; min-height: 48px; border-radius: 12px; border: 1px dashed #C9B9A6; background: transparent; font-weight: 600; color: var(--medio); }
+.acciones { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.campo { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.campo label, .etq { font-size: 13px; font-weight: 700; color: var(--medio); }
+.campo input, .campo textarea { min-height: 48px; border-radius: 12px; border: 1px solid var(--borde); background: var(--tarjeta); padding: 10px 12px; font-size: 16px; width: 100%; }
+.campo textarea { min-height: 80px; resize: vertical; }
+.campo input:focus, .campo textarea:focus, button:focus-visible, a:focus-visible { outline: 2px solid var(--acento); outline-offset: 1px; }
+.ayuda { font-size: 13px; color: var(--suave); }
+.dos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 8px; }
+.grande { font-size: 24px !important; font-weight: 800; }
+.cuenta { display: flex; flex-direction: column; gap: 6px; }
+.cuenta .fila { font-size: 15px; }
+.cuenta .total { font-size: 18px; font-weight: 800; border-top: 1px solid var(--linea); padding-top: 8px; }
+.check { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 52px; border-bottom: 1px solid #F3ECE3; }
+.check:last-child { border-bottom: 0; }
+.mov { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 14px; }
+.mov b { white-space: nowrap; }
+.borrar { min-height: 40px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--borde); background: var(--fondo); font-size: 13px; font-weight: 600; color: var(--medio); }
+.borrar.conf { background: var(--av); border-color: var(--av); color: #fff; }
+.contacto { display: flex; gap: 8px; flex-wrap: wrap; }
+.contacto a { flex: 1 1 140px; min-height: 44px; border-radius: 12px; background: var(--tarjeta); border: 1px solid var(--borde); display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px; text-decoration: none; color: var(--tinta); }
+.caja { border-radius: 14px; padding: 12px 14px; font-size: 14px; margin: 10px 0; }
+.caja.av { background: var(--av-f); border: 1px solid var(--av-b); color: var(--av); }
+.caja.ok { background: var(--ok-f); border: 1px solid var(--ok-b); color: var(--ok); }
+.caja button { margin-top: 8px; }
+.vacio { text-align: center; color: var(--suave); padding: 24px 8px; font-size: 15px; }
+.estado { font-size: 11px; font-weight: 800; letter-spacing: .06em; color: var(--medio); white-space: nowrap; text-transform: uppercase; }
+.item.actual { border: 2px solid var(--acento); }
+.item.viejo { background: var(--gris); }
+nav.barra { position: fixed; left: 0; right: 0; bottom: 0; background: rgba(251,247,242,.97); border-top: 1px solid var(--linea); padding: 6px 16px calc(6px + env(safe-area-inset-bottom)); }
+nav.barra div { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+nav.barra button { min-height: 50px; border: 0; border-radius: 12px; background: transparent; font-weight: 700; font-size: 15px; color: var(--medio); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+nav.barra button[aria-current="page"] { background: var(--seg); color: var(--tinta); }
+.aviso { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(76px + env(safe-area-inset-bottom)); background: var(--tinta); color: #fff; padding: 10px 16px; border-radius: 12px; font-weight: 600; font-size: 14px; z-index: 5; max-width: calc(100% - 32px); }
+.pie { margin-top: 28px; text-align: center; font-size: 13px; color: var(--suave); display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.buscar input { width: 100%; min-height: 46px; border-radius: 12px; border: 1px solid var(--borde); background: var(--tarjeta); padding: 0 14px; font-size: 16px; margin-bottom: 10px; }
+.sync { font-size: 13px; color: var(--av); }
+/* Compu (pedido de Ariel 13/11, adaptado del panel de Tai Chi): desde 900 px la barra de abajo pasa a menú a la izquierda,
+   el tablero muestra los 4 números en fila y las listas van en columnas. La ficha y los formularios siguen angostos.
+   Solo CSS: no cambia ningún comportamiento. En el celu no cambia nada. */
+@media (min-width: 900px) {
+  nav.barra { top: 0; right: auto; width: 210px; border-top: 0; border-right: 1px solid var(--linea); padding: 24px 12px; }
+  nav.barra div { max-width: none; display: flex; flex-direction: column; gap: 6px; }
+  nav.barra button { flex-direction: row; justify-content: flex-start; padding: 12px 14px; min-height: 52px; font-size: 17px; }
+  #app { max-width: none; margin: 0 0 0 210px; padding: 12px 32px 40px; }
+  #app > :not(nav):not(.aviso) { max-width: 640px; margin-left: auto; margin-right: auto; }
+  #app.ancho > :not(nav):not(.aviso) { max-width: 1180px; }
+  #app.v-conectar, #app.v-cargando { margin-left: 0; }
+  /* Listas (viajes, gente del viaje, personas): en columnas. */
+  #app.ancho > .lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; align-items: start; }
+  #app.ancho > .lista > .vacio { grid-column: 1 / -1; }
+  /* Tablero del viaje: los 4 números en una fila; el buscador y los botones de abajo no ocupan todo el ancho. */
+  #app.v-viaje > .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  #app.ancho > .buscar { max-width: 1180px; }
+  #app.ancho > .buscar input { max-width: 520px; }
+  #app.ancho > .acciones { align-items: flex-start; }
+  #app.ancho > .acciones > button { width: auto; min-width: 300px; padding: 0 24px; }
+  .aviso { bottom: 32px; }
+  #app:not(.v-conectar):not(.v-cargando) .aviso { left: calc(50% + 105px); }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function () {
+  'use strict';
+
+  var CFG_KEY = 'contemplo_conexion';
+  var CACHE_KEY = 'contemplo_cache';
+  var GRUPOS = [['pax', 'PAX'], ['reservado', 'Reservados'], ['interesado', 'Interesados'], ['descartado', 'Descartados']];
+  var GRUPO1 = { pax: 'PAX', reservado: 'Reservado', interesado: 'Interesado', descartado: 'Descartado' };
+  var AEREO = [['tati', 'Con Tati'], ['propio', 'Por su cuenta'], ['definir', 'A definir']];
+  var CONCEPTOS = [['seña', 'Seña'], ['cuota', 'Cuota'], ['aéreo', 'Aéreo'], ['otro', 'Otro']];
+  var MEDIOS = [['transferencia', 'Transferencia'], ['efectivo', 'Efectivo'], ['otro', 'Otro']];
+  var ESTADOS = [['en curso', 'En curso'], ['borrador', 'Borrador'], ['terminado', 'Terminado']];
+  var ORDEN_ESTADO = { 'en curso': 0, 'borrador': 1, 'terminado': 2 };
+
+  // ---------- Guardado local (puede fallar: siempre con try) ----------
+  function leerJSON(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
+  function escribirJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function borrarClave(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
+  var cfg = leerJSON(CFG_KEY);
+  var D = leerJSON(CACHE_KEY);
+  if (D && !Array.isArray(D.viajes)) D = null;
+
+  var S = {
+    vista: cfg ? 'viajes' : 'conectar', viajeId: null, inscId: null, personaId: null,
+    tab: 'pax', q: '', qp: '', filtroP: 'todas',
+    f: null, error: '', guardando: false, conf: null, aviso: '', syncError: '', pila: []
+  };
+
+  // ---------- Utilidades ----------
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function r2(n) { return Math.round(n * 100) / 100; }
+  function suma(l) { return r2(l.reduce(function (a, x) { return a + (Number(x.monto) || 0); }, 0)); }
+  function usd(n) { return 'USD ' + Number(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 2 }); }
+  function hoy() {
+    var d = new Date();
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+  function fechaCorta(s) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || '');
+    if (!m) return esc(s);
+    var meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    return Number(m[3]) + ' ' + meses[Number(m[2]) - 1] + (m[1] !== String(new Date().getFullYear()) ? ' ' + m[1] : '');
+  }
+  function uuid() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    var s = '';
+    for (var i = 0; i < 32; i++) s += Math.floor(Math.random() * 16).toString(16);
+    return s.slice(0, 8) + '-' + s.slice(8, 12) + '-' + s.slice(12, 16) + '-' + s.slice(16, 20) + '-' + s.slice(20);
+  }
+  // "1.900", "1900,50", "1900.5" → número. Vacío → NaN.
+  function numero(s) {
+    s = String(s == null ? '' : s).replace(/\s|usd|\$/gi, '');
+    if (!s) return NaN;
+    if (s.indexOf(',') >= 0) s = s.replace(/\./g, '').replace(',', '.');
+    else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
+    return Number(s);
+  }
+  function normal(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim(); }
+  function digitos(s) { return String(s || '').replace(/\D/g, ''); }
+  function nombreDe(p) { return p ? (p.nombre + (p.apellido ? ' ' + p.apellido : '')) : '(sin nombre)'; }
+  function up(lista, o) {
+    for (var i = 0; i < lista.length; i++) if (lista[i].id === o.id) { lista[i] = o; return; }
+    lista.push(o);
+  }
+  function quitar(lista, id) { for (var i = lista.length - 1; i >= 0; i--) if (lista[i].id === id) lista.splice(i, 1); }
+
+  // ---------- Índices y cuentas ----------
+  var X;
+  function indexar() {
+    X = { viaje: {}, persona: {}, insc: {}, pagosDe: {}, agDe: {}, inscsViaje: {}, inscsPersona: {} };
+    if (!D) return;
+    D.viajes.forEach(function (v) { X.viaje[v.id] = v; });
+    D.personas.forEach(function (p) { X.persona[p.id] = p; });
+    D.inscripciones.forEach(function (i) {
+      X.insc[i.id] = i;
+      (X.inscsViaje[i.viaje] = X.inscsViaje[i.viaje] || []).push(i);
+      (X.inscsPersona[i.persona] = X.inscsPersona[i.persona] || []).push(i);
+    });
+    D.pagos.forEach(function (p) { (X.pagosDe[p.inscripcion] = X.pagosDe[p.inscripcion] || []).push(p); });
+    D.agencia.forEach(function (a) { (X.agDe[a.inscripcion] = X.agDe[a.inscripcion] || []).push(a); });
+  }
+
+  // Todo lo que se muestra de un pax sale de acá.
+  function calc(i) {
+    var v = X.viaje[i.viaje] || {};
+    var activo = i.grupo === 'pax' || i.grupo === 'reservado';
+    var conAereo = i.aereo === 'tati';
+    var costoAereo = conAereo ? (v.costo_aereo || 0) : 0;
+    var costo = r2((v.costo_terrestre || 0) + costoAereo);
+    var pagos = (X.pagosDe[i.id] || []).slice().sort(porFecha);
+    var ag = (X.agDe[i.id] || []).slice().sort(porFecha);
+    var pagado = suma(pagos);
+    var pagadoAereo = suma(pagos.filter(function (p) { return p.concepto === 'aéreo'; }));
+    var agDebe = activo ? r2((v.agencia_pax || 0) + (conAereo ? (v.agencia_aereo || 0) : 0)) : 0;
+    var agPasado = suma(ag);
+    return {
+      v: v, activo: activo, conAereo: conAereo, definir: i.aereo === 'definir', costoAereo: costoAereo,
+      costo: costo, pagos: pagos, pagado: pagado, falta: activo ? r2(costo - pagado) : 0,
+      sena: pagos.some(function (p) { return p.concepto === 'seña'; }),
+      aereoPago: conAereo && costoAereo > 0 && pagadoAereo >= costoAereo,
+      ag: ag, agDebe: agDebe, agPasado: agPasado, agFalta: r2(agDebe - agPasado)
+    };
+  }
+  function porFecha(a, b) { return (b.fecha + b.creado).localeCompare(a.fecha + a.creado); }
+
+  function textoFalta(c) {
+    if (!c.activo) return c.pagado > 0 ? { t: 'Pagó ' + usd(c.pagado), cl: 'monto-ok' } : null;
+    if (c.costo === 0 && !c.definir) return { t: 'Viaje sin precio cargado', cl: 'monto-av' };
+    if (c.falta > 0) return { t: 'Falta ' + usd(c.falta) + (c.definir ? ' + aéreo?' : ''), cl: 'monto-av' };
+    if (c.falta < 0) return { t: 'A favor ' + usd(-c.falta), cl: 'monto-ok' };
+    return { t: c.definir ? 'Pagó terrestre' : 'Pagó todo', cl: 'monto-ok' };
+  }
+
+  function chipsDe(i, c) {
+    var h = [];
+    if (c.activo) h.push(c.sena ? ['ok', 'Seña ✓'] : ['av', 'Sin seña']);
+    if (i.aereo === 'tati') h.push(c.aereoPago ? ['ok', 'Aéreo pago'] : ['av', 'Aéreo debe']);
+    else if (i.aereo === 'propio') h.push(['ok', 'Aéreo propio']);
+    else h.push(['', 'Aéreo a definir']);
+    h.push(i.visa ? ['ok', 'Visa ✓'] : ['', 'Sin visa']);
+    if (c.activo && c.agDebe > 0) {
+      if (c.agFalta <= 0) h.push(['ok', 'Agencia ✓']);
+      else if (c.agPasado > 0) h.push(['av', 'Agencia parcial']);
+      else h.push(['', 'Sin agencia']);
+    }
+    return '<div class="chips">' + h.map(function (x) { return '<span class="chip ' + x[0] + '">' + x[1] + '</span>'; }).join('') + '</div>';
+  }
+
+  // ---------- Red ----------
+  function api(accion, datos) {
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var t = setTimeout(function () { if (ctrl) ctrl.abort(); }, 30000);
+    var cuerpo = Object.assign({ accion: accion, token: cfg.token }, datos || {});
+    return fetch(cfg.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // text/plain: sin preflight de CORS
+      body: JSON.stringify(cuerpo),
+      redirect: 'follow',
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function (r) {
+      if (!r.ok) throw new Error('La planilla respondió ' + r.status + '. Reintentá.');
+      return r.json();
+    }).then(function (j) {
+      if (!j || !j.ok) throw new Error((j && j.error) || 'Respuesta rara de la planilla');
+      return j.data;
+    }, function (e) {
+      if (e && e.name === 'AbortError') throw new Error('Tardó demasiado. Revisá la conexión y reintentá.');
+      if (e instanceof TypeError || (e && e.name === 'SyntaxError')) throw new Error('No hay conexión con la planilla. Reintentá.');
+      throw e;
+    }).finally(function () { clearTimeout(t); });
+  }
+
+  var cargando = false;
+  function cargar() {
+    if (!cfg || cargando || S.guardando) return;
+    cargando = true;
+    api('todo').then(function (data) {
+      cargando = false;
+      if (S.guardando) return;
+      D = data; S.syncError = '';
+      escribirJSON(CACHE_KEY, D);
+      if (!S.f) render();
+    }).catch(function (e) {
+      cargando = false;
+      S.syncError = e.message;
+      if (!S.f) render();
+    });
+  }
+
+  // Manda un cambio. Si falla, el formulario queda igual y "Reintentar" reusa el mismo id.
+  function guardar(accion, datos, alListo) {
+    if (S.guardando) return;
+    S.guardando = true; S.error = '';
+    render();
+    api(accion, datos).then(function (r) {
+      S.guardando = false;
+      var recargar = alListo(r);
+      escribirJSON(CACHE_KEY, D);
+      render();
+      if (recargar) cargar();
+    }).catch(function (e) {
+      S.guardando = false;
+      S.error = e.message;
+      render();
+    });
+  }
+
+  function avisar(t) {
+    S.aviso = t;
+    setTimeout(function () {
+      if (S.aviso !== t) return;
+      S.aviso = '';
+      var el = document.querySelector('.aviso');
+      if (el) el.remove();
+    }, 2500);
+  }
+
+  // ---------- Navegación (con el botón Atrás del celular) ----------
+  function foto() { return { vista: S.vista, viajeId: S.viajeId, inscId: S.inscId, personaId: S.personaId, f: S.f, tab: S.tab }; }
+  function ir(vista, extra) {
+    S.pila.push(foto());
+    Object.assign(S, { vista: vista, error: '', conf: null, f: null }, extra || {});
+    try { history.pushState({ n: S.pila.length }, ''); } catch (e) {}
+    render();
+    window.scrollTo(0, 0);
+  }
+  function raiz(vista) {
+    S.pila = []; Object.assign(S, { vista: vista, f: null, error: '', conf: null });
+    render(); window.scrollTo(0, 0);
+  }
+  var ignorarPop = false; // lo prende cerrarForm, que ya movió el estado a mano
+  window.addEventListener('popstate', function () {
+    if (ignorarPop) { ignorarPop = false; return; }
+    if (S.guardando) { try { history.pushState({}, ''); } catch (e) {} return; }
+    var ant = S.pila.pop();
+    if (ant) Object.assign(S, ant, { error: '', conf: null });
+    else Object.assign(S, { vista: cfg ? 'viajes' : 'conectar', f: null });
+    render();
+  });
+  function atras() { if (S.pila.length) history.back(); else raiz('viajes'); }
+
+  // ---------- Vistas ----------
+  var ICONO = {
+    atras: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>',
+    lapiz: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
+    wa: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.2-4.5A9 9 0 1 1 21 12z"/></svg>',
+    mail: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>'
+  };
+
+  function cabecera(titulo, sub, derecha, conAtras) {
+    return '<header><div class="fila">' +
+      (conAtras ? '<button class="icono" data-a="atras" aria-label="Volver">' + ICONO.atras + '</button>' : '<span></span>') +
+      (derecha || '') + '</div>' +
+      '<h1>' + titulo + '</h1>' + (sub ? '<div class="sub">' + sub + '</div>' : '') +
+      (S.syncError && !S.f ? '<div class="sync">Sin conexión con la planilla: muestro lo último que guardé.</div>' : '') +
+      '</header>';
+  }
+
+  function seg(accion, opciones, actual, cols) {
+    return '<div class="seg" style="grid-template-columns:repeat(' + (cols || opciones.length) + ',minmax(0,1fr))">' +
+      opciones.map(function (o) {
+        return '<button type="button" data-a="' + accion + '" data-v="' + esc(o[0]) + '" aria-pressed="' + (o[0] === actual) + '"' + (S.guardando ? ' disabled' : '') + '>' + o[1] + '</button>';
+      }).join('') + '</div>';
+  }
+
+  function barra() {
+    var v = S.vista;
+    var enViajes = v === 'viajes' || v === 'viaje';
+    var enPersonas = v === 'personas' || v === 'persona';
+    return '<nav class="barra" aria-label="Secciones"><div>' +
+      '<button data-a="raiz" data-v="viajes"' + (enViajes ? ' aria-current="page"' : '') + '>Viajes</button>' +
+      '<button data-a="raiz" data-v="personas"' + (enPersonas ? ' aria-current="page"' : '') + '>Personas</button>' +
+      '</div></nav>';
+  }
+
+  function cajaError() {
+    if (!S.error) return '';
+    var clave = /Clave/.test(S.error);
+    return '<div class="caja av" role="alert">' + esc(S.error) +
+      (clave ? '<button class="secu" data-a="desconectar">Cambiar conexión</button>' : '') + '</div>';
+  }
+
+  function vConectar() {
+    var f = S.f || (S.f = { tipo: 'conectar', url: '', token: '' });
+    return '<header><h1>ConTemplo PAX</h1><div class="sub">Conectá la app con la planilla. Se hace una sola vez en este celular.</div></header>' +
+      '<form data-form="conectar">' +
+      '<div class="campo"><label for="c-url">URL de la planilla (termina en /exec)</label><input id="c-url" data-f="url" value="' + esc(f.url) + '" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false"></div>' +
+      '<div class="campo"><label for="c-token">Clave</label><input id="c-token" data-f="token" value="' + esc(f.token) + '" autocomplete="off" autocapitalize="off" spellcheck="false"></div>' +
+      cajaError() +
+      '<button class="prim" type="submit"' + (S.guardando ? ' disabled' : '') + '>' + (S.guardando ? 'Conectando…' : 'Conectar') + '</button></form>';
+  }
+
+  function contarViaje(vid) {
+    var c = { pax: 0, reservado: 0, interesado: 0, descartado: 0 };
+    (X.inscsViaje[vid] || []).forEach(function (i) { c[i.grupo] = (c[i.grupo] || 0) + 1; });
+    return c;
+  }
+
+  function vViajes() {
+    var vs = D.viajes.slice().sort(function (a, b) {
+      return (ORDEN_ESTADO[a.estado] - ORDEN_ESTADO[b.estado]) || (b.creado || '').localeCompare(a.creado || '');
+    });
+    var h = cabecera('Viajes', '', '', false);
+    h += '<div class="lista">';
+    if (!vs.length) h += '<div class="vacio">Todavía no hay viajes. Creá el primero.</div>';
+    vs.forEach(function (v) {
+      var c = contarViaje(v.id);
+      var cl = v.estado === 'en curso' ? ' actual' : (v.estado === 'terminado' ? ' viejo' : '');
+      h += '<button class="item' + cl + '" data-a="verViaje" data-id="' + esc(v.id) + '">' +
+        '<div class="fila" style="align-items:baseline"><span class="nombre">' + esc(v.nombre) + '</span><span class="estado">' + esc(v.estado) + '</span></div>' +
+        '<span class="sub">' + (v.fechas ? esc(v.fechas) + ' · ' : '') + c.pax + ' pax · ' + c.reservado + ' reservados · ' + c.interesado + ' interesados</span></button>';
+    });
+    h += '</div><div class="acciones"><button class="punteado" data-a="nuevoViaje">+ Nuevo viaje</button></div>';
+    h += '<div class="pie"><button class="txtbtn" data-a="desconectar">Cambiar conexión</button>' +
+      '<span>Hecho por <a href="https://am-digital.com.ar" target="_blank" rel="noopener">AM Digital</a>, de complejo a simple</span></div>';
+    return h + barra();
+  }
+
+  function vViaje() {
+    var v = X.viaje[S.viajeId];
+    if (!v) return vNoEsta();
+    var inscs = X.inscsViaje[v.id] || [];
+    var cont = contarViaje(v.id);
+    var cobrado = 0, falta = 0, ag = 0, definir = 0;
+    inscs.forEach(function (i) {
+      var c = calc(i);
+      cobrado += c.pagado;
+      if (c.activo) {
+        if (c.falta > 0) falta += c.falta;
+        if (c.agFalta > 0) ag += c.agFalta;
+        if (c.definir) definir++;
+      }
+    });
+    var sub = (v.fechas ? esc(v.fechas) + ' · ' : '') + usd(v.costo_terrestre) + ' terrestre' + (v.costo_aereo ? ' + ' + usd(v.costo_aereo) + ' aéreo' : '');
+    var h = cabecera(esc(v.nombre), sub, '<button class="icono" data-a="editarViaje" aria-label="Editar viaje">' + ICONO.lapiz + '</button>', true);
+    h += '<div class="kpis">' +
+      '<div class="kpi"><div class="k">PAX</div><div class="v">' + cont.pax + (v.cupo ? ' <span class="sub" style="font-weight:600">/ ' + v.cupo + ' cupo</span>' : '') + '</div></div>' +
+      '<div class="kpi"><div class="k">Cobrado</div><div class="v">' + usd(r2(cobrado)) + '</div></div>' +
+      '<div class="kpi av"><div class="k">Falta cobrar' + (definir ? ' (' + definir + ' sin aéreo definido)' : '') + '</div><div class="v">' + usd(r2(falta)) + '</div></div>' +
+      '<div class="kpi ok"><div class="k">Falta pasar a agencia</div><div class="v">' + usd(r2(ag)) + '</div></div></div>';
+    h += '<div class="tabs" role="group" aria-label="Grupos">' + GRUPOS.map(function (g) {
+      return '<button class="tab" data-a="tab" data-v="' + g[0] + '" aria-pressed="' + (S.tab === g[0]) + '">' + g[1] + '<span>' + (cont[g[0]] || 0) + '</span></button>';
+    }).join('') + '</div>';
+    h += '<div class="buscar"><input type="search" id="q" data-q="q" value="' + esc(S.q) + '" placeholder="Buscar en ' + esc(GRUPOS.filter(function (g) { return g[0] === S.tab; })[0][1].toLowerCase()) + '" aria-label="Buscar"></div>';
+    h += '<div class="lista" id="lista">' + listaViaje() + '</div>';
+    h += '<div class="acciones"><button class="prim" data-a="nuevaPersona">+ Cargar persona</button></div>';
+    return h + barra();
+  }
+
+  function listaViaje() {
+    var q = normal(S.q);
+    var l = (X.inscsViaje[S.viajeId] || []).filter(function (i) {
+      return i.grupo === S.tab && (!q || normal(nombreDe(X.persona[i.persona])).indexOf(q) >= 0);
+    }).sort(function (a, b) { return normal(nombreDe(X.persona[a.persona])).localeCompare(normal(nombreDe(X.persona[b.persona]))); });
+    if (!l.length) return '<div class="vacio">' + (q ? 'Nadie con ese nombre acá.' : 'No hay nadie en este grupo.') + '</div>';
+    return l.map(function (i) {
+      var c = calc(i), f = textoFalta(c);
+      return '<button class="item" data-a="verFicha" data-id="' + esc(i.id) + '">' +
+        '<div class="fila" style="align-items:baseline"><span class="nombre">' + esc(nombreDe(X.persona[i.persona])) + '</span>' +
+        (f ? '<span class="' + f.cl + '">' + f.t + '</span>' : '') + '</div>' + chipsDe(i, c) + '</button>';
+    }).join('');
+  }
+
+  function vFicha() {
+    var i = X.insc[S.inscId];
+    if (!i) return vNoEsta();
+    var p = X.persona[i.persona] || {}, c = calc(i), v = c.v;
+    var otros = (X.inscsPersona[i.persona] || []).filter(function (x) { return x.id !== i.id; }).map(function (x) {
+      var ov = X.viaje[x.viaje]; return ov ? esc(ov.nombre) + ' (' + GRUPO1[x.grupo].toLowerCase() + ')' : '';
+    }).filter(Boolean);
+    var h = cabecera(esc(nombreDe(p)), esc(v.nombre || '') + (otros.length ? '<br>También: ' + otros.join(', ') : ''),
+      '<button class="txtbtn" data-a="editarPersona" data-id="' + esc(p.id) + '">Editar datos</button>', true);
+    h += seg('grupo', [['interesado', 'Interes.'], ['reservado', 'Reserv.'], ['pax', 'PAX'], ['descartado', 'Descart.']], i.grupo);
+    h += contacto(p);
+    h += cajaError();
+
+    h += '<h2>La cuenta</h2><div class="tarjeta cuenta">';
+    if (c.activo) {
+      h += '<div class="fila"><span>Terrestre</span><span>' + usd(v.costo_terrestre) + '</span></div>' +
+        '<div class="fila"><span>Aéreo</span><span>' + (c.conAereo ? usd(c.costoAereo) : (c.definir ? 'a definir' : 'lo saca por su cuenta')) + '</span></div>' +
+        '<div class="fila"><span>Pagó</span><span>− ' + usd(c.pagado) + '</span></div>' +
+        '<div class="fila total" style="color:' + (c.falta > 0 ? 'var(--av)' : 'var(--ok)') + '"><span>' + (c.falta < 0 ? 'A favor' : 'Falta') + '</span><span>' + usd(Math.abs(c.falta)) + (c.definir && c.falta > 0 ? ' + aéreo?' : '') + '</span></div>';
+    } else {
+      h += '<div class="sub">Como ' + GRUPO1[i.grupo].toLowerCase() + ' no se le cobra.' + (c.pagado ? ' Pagó ' + usd(c.pagado) + '.' : '') + '</div>';
+    }
+    h += '</div>';
+
+    h += '<h2>Aéreo</h2>' + seg('aereo', AEREO, i.aereo);
+    h += '<div class="tarjeta" style="margin-top:12px;padding:4px 14px">' +
+      '<div class="check"><span><b>Seña</b><br><span class="ayuda">' + (c.sena ? 'cobrada' : 'todavía no') + '</span></span><span class="chip ' + (c.sena ? 'ok' : 'av') + '">' + (c.sena ? 'Cobrada' : 'Pendiente') + '</span></div>' +
+      (c.conAereo ? '<div class="check"><span><b>Aéreo pago</b><br><span class="ayuda">pagos marcados como aéreo</span></span><span class="chip ' + (c.aereoPago ? 'ok' : 'av') + '">' + (c.aereoPago ? 'Pago' : 'Debe') + '</span></div>' : '') +
+      '<div class="check"><span><b>Visa</b></span><button class="borrar" data-a="visa" aria-pressed="' + i.visa + '"' + (S.guardando ? ' disabled' : '') + ' style="' + (i.visa ? 'background:var(--ok-f);border-color:var(--ok-b);color:var(--ok)' : '') + '">' + (i.visa ? 'Tiene visa ✓' : 'Marcar que tiene') + '</button></div>' +
+      '</div>';
+
+    h += '<h2>Pagos</h2><div class="lista">';
+    if (!c.pagos.length) h += '<div class="sub">Sin pagos todavía.</div>';
+    c.pagos.forEach(function (x) {
+      h += '<div class="tarjeta mov"><span>' + fechaCorta(x.fecha) + ' · ' + esc(x.concepto) + ' · ' + esc(x.medio) + '</span><span style="display:flex;gap:8px;align-items:center"><b>' + usd(x.monto) + '</b>' + botonBorrar('Pago', x.id) + '</span></div>';
+    });
+    h += '</div><div class="acciones"><button class="prim" data-a="nuevoPago">Registrar pago</button></div>';
+
+    h += '<h2>Agencia</h2>';
+    if (c.activo) {
+      h += '<div class="tarjeta cuenta"><div class="fila"><span>Le corresponde</span><span>' + usd(c.agDebe) + '</span></div>' +
+        '<div class="fila"><span>Pasado</span><span>− ' + usd(c.agPasado) + '</span></div>' +
+        '<div class="fila total" style="color:' + (c.agFalta > 0 ? 'var(--av)' : 'var(--ok)') + '"><span>Falta pasar</span><span>' + usd(Math.max(c.agFalta, 0)) + '</span></div>' +
+        (c.agDebe === 0 ? '<div class="ayuda">El viaje no tiene cargado cuánto va a la agencia por pax. Se pone en Editar viaje.</div>' : '') + '</div>';
+    } else if (!c.ag.length) {
+      h += '<div class="sub">Como ' + GRUPO1[i.grupo].toLowerCase() + ' no le corresponde a la agencia.</div>';
+    }
+    if (c.ag.length) {
+      h += '<div class="lista" style="margin-top:8px">';
+      c.ag.forEach(function (x) {
+        h += '<div class="tarjeta mov"><span>' + fechaCorta(x.fecha) + ' · pasado a agencia</span><span style="display:flex;gap:8px;align-items:center"><b>' + usd(x.monto) + '</b>' + botonBorrar('Agencia', x.id) + '</span></div>';
+      });
+      h += '</div>';
+    }
+    h += '<div class="acciones"><button class="secu" data-a="nuevaAgencia">Pasé plata a la agencia</button></div>';
+    return h + barra();
+  }
+
+  function botonBorrar(tipo, id) {
+    var conf = S.conf === tipo + ':' + id;
+    return '<button class="borrar' + (conf ? ' conf' : '') + '" data-a="borrar" data-t="' + tipo + '" data-id="' + esc(id) + '"' + (S.guardando ? ' disabled' : '') + '>' + (conf ? '¿Seguro? Borrar' : 'Borrar') + '</button>';
+  }
+
+  function contacto(p) {
+    var d = digitos(p.telefono);
+    var h = '';
+    if (d.length >= 6) h += '<a href="https://wa.me/' + d + '" target="_blank" rel="noopener">' + ICONO.wa + 'WhatsApp</a>';
+    if (p.mail) h += '<a href="mailto:' + esc(p.mail) + '">' + ICONO.mail + 'Mail</a>';
+    var txt = [p.telefono, p.mail].filter(Boolean).map(esc).join(' · ');
+    return (h ? '<div class="contacto" style="margin-top:12px">' + h + '</div>' : '') +
+      (txt ? '<div class="sub" style="margin-top:6px;overflow-wrap:anywhere">' + txt + '</div>' : '<div class="sub" style="margin-top:10px">Sin teléfono ni mail cargados.</div>') +
+      (p.notas ? '<div class="sub" style="margin-top:6px">' + esc(p.notas) + '</div>' : '');
+  }
+
+  function campo(id, etq, val, extra, ayuda) {
+    return '<div class="campo"><label for="f-' + id + '">' + etq + '</label><input id="f-' + id + '" data-f="' + id + '" value="' + esc(val) + '" ' + (extra || '') + '>' + (ayuda ? '<span class="ayuda">' + ayuda + '</span>' : '') + '</div>';
+  }
+
+  function botonGuardar(texto) {
+    return '<div class="acciones">' + cajaError() + '<button class="prim" type="submit"' + (S.guardando ? ' disabled' : '') + '>' +
+      (S.guardando ? 'Guardando…' : (S.error ? 'Reintentar' : texto)) + '</button></div>';
+  }
+
+  function vPago() {
+    var f = S.f, i = X.insc[f.inscripcion];
+    if (!i) return vNoEsta();
+    var p = X.persona[i.persona];
+    var h = cabecera('Pago de ' + esc(nombreDe(p)), esc((X.viaje[i.viaje] || {}).nombre || ''), '', true);
+    h += '<form data-form="pago"><div class="campo"><span class="etq">¿Qué es?</span>' + seg('concepto', CONCEPTOS, f.concepto) + '</div>';
+    h += '<div class="campo"><label for="f-monto">Monto en USD</label><input id="f-monto" class="grande" data-f="monto" value="' + esc(f.monto) + '" inputmode="decimal" autocomplete="off">' +
+      '<span class="ayuda" id="despues">' + despuesPago() + '</span></div>';
+    h += '<div class="campo"><label for="f-fecha">Fecha</label><input id="f-fecha" type="date" data-f="fecha" value="' + esc(f.fecha) + '"></div>';
+    h += '<div class="campo"><span class="etq">Medio</span>' + seg('medio', MEDIOS, f.medio) + '</div>';
+    return h + botonGuardar('Guardar pago') + '</form>';
+  }
+
+  function despuesPago() {
+    var i = X.insc[S.f.inscripcion], c = calc(i), m = numero(S.f.monto);
+    if (!c.activo) return 'Como ' + GRUPO1[i.grupo].toLowerCase() + ' no se le cobra, pero el pago queda anotado.';
+    if (!(m > 0)) return 'Le falta ' + usd(Math.max(c.falta, 0)) + '.';
+    var resto = r2(c.falta - m);
+    if (resto > 0) return 'Después de esto le falta ' + usd(resto) + (c.definir ? ' + aéreo' : '') + '.';
+    if (resto < 0) return 'Ojo: queda ' + usd(-resto) + ' a favor.';
+    return 'Con esto pagó todo' + (c.definir ? ' (sin contar el aéreo, que está a definir)' : '') + '.';
+  }
+
+  function vAgencia() {
+    var f = S.f, i = X.insc[f.inscripcion];
+    if (!i) return vNoEsta();
+    var c = calc(i);
+    var h = cabecera('A la agencia', esc(nombreDe(X.persona[i.persona])) + ' · ' + esc(c.v.nombre || ''), '', true);
+    h += '<form data-form="agencia">' +
+      campo('monto', 'Monto que le pasaste en USD', f.monto, 'inputmode="decimal" autocomplete="off" class="grande"',
+        c.agDebe ? 'Le corresponden ' + usd(c.agDebe) + ' por este pax; ya pasaste ' + usd(c.agPasado) + '.' : '') +
+      campo('fecha', 'Fecha', f.fecha, 'type="date"');
+    return h + botonGuardar('Guardar') + '</form>';
+  }
+
+  function vFormViaje() {
+    var f = S.f;
+    var h = cabecera(f.nuevo ? 'Nuevo viaje' : 'Editar viaje', '', '', true);
+    h += '<form data-form="viaje">' +
+      campo('nombre', 'Nombre', f.nombre, 'autocomplete="off"', 'Por ejemplo: India · Holi en Rishikesh') +
+      campo('fechas', 'Cuándo', f.fechas, 'autocomplete="off"', 'Texto libre: "Marzo 2027", "1 al 15 de marzo de 2027"') +
+      '<div class="dos">' +
+      campo('costo_terrestre', 'Terrestre (USD)', f.costo_terrestre, 'inputmode="decimal"') +
+      campo('costo_aereo', 'Aéreo (USD)', f.costo_aereo, 'inputmode="decimal"') + '</div>' +
+      '<span class="ayuda" style="display:block;margin:-6px 0 14px">El aéreo solo se le suma a quien lo saca con vos.</span>' +
+      '<div class="dos">' +
+      campo('agencia_pax', 'A la agencia por pax', f.agencia_pax, 'inputmode="decimal"') +
+      campo('agencia_aereo', 'A la agencia por aéreo', f.agencia_aereo, 'inputmode="decimal"') + '</div>' +
+      '<span class="ayuda" style="display:block;margin:-6px 0 14px">Lo que le pasás a la agencia por cada pax o reservado. El segundo se suma solo si el pax saca el aéreo con vos; si el aéreo no pasa por la agencia, dejalo en 0.</span>' +
+      campo('cupo', 'Cupo', f.cupo, 'inputmode="numeric"') +
+      '<div class="campo"><span class="etq">Estado</span>' + seg('estado', ESTADOS, f.estado) + '</div>' +
+      '<div class="campo"><label for="f-notas">Notas</label><textarea id="f-notas" data-f="notas">' + esc(f.notas) + '</textarea></div>';
+    return h + botonGuardar(f.nuevo ? 'Crear viaje' : 'Guardar') + '</form>';
+  }
+
+  function vFormPersona() {
+    var f = S.f;
+    var v = f.viaje ? X.viaje[f.viaje] : null;
+    var h = cabecera(f.nuevo ? 'Nueva persona' : 'Editar datos', v ? 'Para ' + esc(v.nombre) : '', '', true);
+    h += '<form data-form="persona">' +
+      campo('nombre', 'Nombre', f.nombre, 'autocomplete="off" autocapitalize="words"') +
+      campo('apellido', 'Apellido', f.apellido, 'autocomplete="off" autocapitalize="words"') +
+      campo('telefono', 'Teléfono', f.telefono, 'type="tel" autocomplete="off"', 'Con código de área, por ejemplo +54 9 11 1234 5678') +
+      campo('mail', 'Mail', f.mail, 'type="email" autocomplete="off" autocapitalize="off"') +
+      '<div id="dup">' + cajaDuplicado() + '</div>';
+    if (f.nuevo && v) h += '<div class="campo"><span class="etq">Grupo en este viaje</span>' + seg('grupoF', [['interesado', 'Interes.'], ['reservado', 'Reserv.'], ['pax', 'PAX'], ['descartado', 'Descart.']], f.grupo) + '</div>';
+    h += '<div class="campo"><label for="f-notas">Notas</label><textarea id="f-notas" data-f="notas">' + esc(f.notas) + '</textarea></div>';
+    return h + botonGuardar(f.nuevo ? 'Guardar' : 'Guardar cambios') + '</form>';
+  }
+
+  // Busca si ya existe alguien con ese teléfono, mail o nombre completo.
+  function duplicado() {
+    var f = S.f, tel = digitos(f.telefono), mail = normal(f.mail), nom = normal(f.nombre + ' ' + f.apellido);
+    return D.personas.filter(function (p) {
+      if (p.id === f.id) return false;
+      var pt = digitos(p.telefono);
+      if (tel.length >= 8 && pt.length >= 8 && pt.slice(-8) === tel.slice(-8)) return true;
+      if (mail && normal(p.mail) === mail) return true;
+      return f.apellido && nom.length > 3 && normal(p.nombre + ' ' + p.apellido) === nom;
+    })[0] || null;
+  }
+
+  function cajaDuplicado() {
+    var d = duplicado();
+    if (!d) return '';
+    var ya = S.f.viaje && (X.inscsPersona[d.id] || []).some(function (i) { return i.viaje === S.f.viaje; });
+    return '<div class="caja av"><b>Ya está cargada: ' + esc(nombreDe(d)) + '</b>' + (d.telefono ? ' · ' + esc(d.telefono) : '') + (d.mail ? ' · ' + esc(d.mail) : '') +
+      '<br>' + (ya ? 'Y ya está en este viaje.' : 'Si es la misma persona, usá esa en vez de crear otra.') +
+      (S.f.nuevo ? '<button type="button" class="secu" data-a="usarExistente" data-id="' + esc(d.id) + '">' + (ya ? 'Ver su ficha' : (S.f.viaje ? 'Usar esa y sumarla al viaje' : 'Ver esa persona')) + '</button>' : '') + '</div>';
+  }
+
+  function vPersonas() {
+    var h = cabecera('Personas', 'Todas, de todos los viajes', '', false);
+    h += '<div class="tabs" role="group" aria-label="Filtro">' + [['todas', 'Todas'], ['viajaron', 'Ya viajaron'], ['nunca', 'Nunca viajaron']].map(function (o) {
+      return '<button class="tab" data-a="filtroP" data-v="' + o[0] + '" aria-pressed="' + (S.filtroP === o[0]) + '">' + o[1] + '</button>';
+    }).join('') + '</div>';
+    h += '<div class="buscar"><input type="search" id="qp" data-q="qp" value="' + esc(S.qp) + '" placeholder="Buscar por nombre, teléfono o mail" aria-label="Buscar"></div>';
+    h += '<div class="lista" id="lista">' + listaPersonas() + '</div>';
+    h += '<div class="acciones"><button class="punteado" data-a="nuevaPersonaSola">+ Nueva persona</button></div>';
+    return h + barra();
+  }
+
+  function viajo(pid) {
+    return (X.inscsPersona[pid] || []).some(function (i) { var v = X.viaje[i.viaje]; return i.grupo === 'pax' && v && v.estado === 'terminado'; });
+  }
+
+  function listaPersonas() {
+    var q = normal(S.qp), qd = digitos(S.qp);
+    var l = D.personas.filter(function (p) {
+      if (S.filtroP === 'viajaron' && !viajo(p.id)) return false;
+      if (S.filtroP === 'nunca' && viajo(p.id)) return false;
+      if (!q) return true;
+      return normal(nombreDe(p) + ' ' + p.mail).indexOf(q) >= 0 || (qd.length >= 3 && digitos(p.telefono).indexOf(qd) >= 0);
+    }).sort(function (a, b) { return normal(nombreDe(a)).localeCompare(normal(nombreDe(b))); });
+    if (!l.length) return '<div class="vacio">' + (q ? 'No encontré a nadie.' : 'No hay personas en este filtro.') + '</div>';
+    return l.map(function (p) {
+      var viajes = (X.inscsPersona[p.id] || []).map(function (i) { var v = X.viaje[i.viaje]; return v ? esc(v.nombre) + ' (' + GRUPO1[i.grupo].toLowerCase() + ')' : ''; }).filter(Boolean);
+      return '<button class="item" data-a="verPersona" data-id="' + esc(p.id) + '"><span class="nombre">' + esc(nombreDe(p)) + '</span>' +
+        '<span class="sub">' + (viajes.length ? viajes.join(' · ') : 'Sin viajes') + '</span></button>';
+    }).join('');
+  }
+
+  function vPersona() {
+    var p = X.persona[S.personaId];
+    if (!p) return vNoEsta();
+    var h = cabecera(esc(nombreDe(p)), '', '<button class="txtbtn" data-a="editarPersona" data-id="' + esc(p.id) + '">Editar datos</button>', true);
+    h += contacto(p) + cajaError();
+    var inscs = X.inscsPersona[p.id] || [];
+    h += '<h2>Viajes</h2><div class="lista">';
+    if (!inscs.length) h += '<div class="sub">Todavía no está en ningún viaje.</div>';
+    inscs.forEach(function (i) {
+      var v = X.viaje[i.viaje] || {}, c = calc(i), f = textoFalta(c);
+      h += '<button class="item" data-a="verFicha" data-id="' + esc(i.id) + '"><div class="fila" style="align-items:baseline"><span class="nombre">' + esc(v.nombre) + '</span><span class="estado">' + GRUPO1[i.grupo] + '</span></div>' +
+        (f ? '<span class="' + f.cl + '">' + f.t + '</span>' : '') + '</button>';
+    });
+    h += '</div>';
+    var libres = D.viajes.filter(function (v) { return v.estado !== 'terminado' && !inscs.some(function (i) { return i.viaje === v.id; }); });
+    if (libres.length) {
+      h += '<h2>Sumar como interesada a</h2><div class="lista">';
+      libres.forEach(function (v) {
+        h += '<button class="secu" data-a="sumarAViaje" data-id="' + esc(v.id) + '"' + (S.guardando ? ' disabled' : '') + '>' + esc(v.nombre) + '</button>';
+      });
+      h += '</div>';
+    }
+    return h + barra();
+  }
+
+  function vNoEsta() {
+    return cabecera('No encontré esto', 'Puede que se haya borrado desde la planilla.', '', true);
+  }
+
+  // ---------- Render ----------
+  var app = document.getElementById('app');
+  function render() {
+    indexar();
+    var foco = document.activeElement && document.activeElement.id;
+    var pos = null;
+    try { pos = foco && document.activeElement.selectionStart; } catch (e) {}
+    var h, cl = S.vista;
+    if (S.vista === 'conectar' || !cfg) { h = vConectar(); cl = 'conectar'; }
+    else if (!D) h = '<header><h1>ConTemplo PAX</h1><div class="sub">' + (S.syncError ? esc(S.syncError) : 'Cargando…') + '</div>' +
+      (S.syncError ? '<button class="secu" data-a="recargar" style="margin-top:12px">Reintentar</button><button class="txtbtn" data-a="desconectar">Cambiar conexión</button>' : '') + '</header>', cl = 'cargando';
+    else h = ({
+      viajes: vViajes, viaje: vViaje, ficha: vFicha, pago: vPago, agencia: vAgencia,
+      formViaje: vFormViaje, formPersona: vFormPersona, personas: vPersonas, persona: vPersona
+    }[S.vista] || vViajes)();
+    if (S.aviso) h += '<div class="aviso" role="status">' + esc(S.aviso) + '</div>';
+    // La clase solo la usa el CSS de compu (pantalla ancha): en el celu no cambia nada.
+    app.className = 'v-' + cl + ({ viajes: 1, viaje: 1, personas: 1 }[cl] ? ' ancho' : '');
+    app.innerHTML = h;
+    if (foco) {
+      var el = document.getElementById(foco);
+      if (el) { el.focus(); try { if (pos != null) el.setSelectionRange(pos, pos); } catch (e) {} }
+    }
+  }
+
+  // ---------- Acciones ----------
+  function nuevoFormPersona(extra) {
+    return Object.assign({ tipo: 'persona', id: uuid(), nombre: '', apellido: '', telefono: '', mail: '', notas: '', nuevo: true, viaje: null, grupo: 'interesado', inscId: uuid() }, extra);
+  }
+
+  function guardarInscripcion(i, cambio, aviso) {
+    var n = Object.assign({}, i, cambio);
+    guardar('guardarInscripcion', { i: n }, function (r) { up(D.inscripciones, r); if (aviso) avisar(aviso); });
+  }
+
+  var A = {
+    atras: atras,
+    raiz: function (d) { raiz(d.v); },
+    recargar: function () { S.syncError = ''; render(); cargar(); },
+    desconectar: function () {
+      cfg = null; D = null; borrarClave(CFG_KEY); borrarClave(CACHE_KEY);
+      S.pila = []; S.f = null; S.error = ''; S.vista = 'conectar'; render();
+    },
+    verViaje: function (d) { ir('viaje', { viajeId: d.id, tab: 'pax', q: '' }); },
+    tab: function (d) { S.tab = d.v; S.q = ''; render(); },
+    verFicha: function (d) { ir('ficha', { inscId: d.id }); },
+    verPersona: function (d) { ir('persona', { personaId: d.id }); },
+    filtroP: function (d) { S.filtroP = d.v; render(); },
+    nuevoViaje: function () {
+      ir('formViaje', { f: { tipo: 'viaje', nuevo: true, id: uuid(), nombre: '', fechas: '', costo_terrestre: '', costo_aereo: '', agencia_pax: '', agencia_aereo: '', cupo: '', estado: 'en curso', notas: '' } });
+    },
+    editarViaje: function () {
+      var v = X.viaje[S.viajeId];
+      ir('formViaje', { f: Object.assign({ tipo: 'viaje', nuevo: false }, v) });
+    },
+    estado: function (d) { S.f.estado = d.v; render(); },
+    nuevaPersona: function () {
+      ir('formPersona', { f: nuevoFormPersona({ viaje: S.viajeId, grupo: S.tab === 'descartado' ? 'interesado' : S.tab }) });
+    },
+    nuevaPersonaSola: function () { ir('formPersona', { f: nuevoFormPersona({}) }); },
+    editarPersona: function (d) {
+      var p = X.persona[d.id];
+      ir('formPersona', { f: Object.assign({ tipo: 'persona', nuevo: false, viaje: null }, p) });
+    },
+    grupoF: function (d) { S.f.grupo = d.v; render(); },
+    usarExistente: function (d) {
+      var f = S.f;
+      var ya = f.viaje && (X.inscsPersona[d.id] || []).filter(function (i) { return i.viaje === f.viaje; })[0];
+      if (ya) { Object.assign(S, { vista: 'ficha', inscId: ya.id, f: null }); render(); return; }
+      if (!f.viaje) { Object.assign(S, { vista: 'persona', personaId: d.id, f: null }); render(); return; }
+      var i = { id: f.inscId, persona: d.id, viaje: f.viaje, grupo: f.grupo, aereo: 'definir', visa: false, notas: '' };
+      guardar('guardarInscripcion', { i: i }, function (r) {
+        up(D.inscripciones, r);
+        Object.assign(S, { vista: 'ficha', inscId: r.id, f: null });
+        avisar(r.ya ? 'Ya estaba en este viaje' : 'Sumada al viaje');
+      });
+    },
+    sumarAViaje: function (d) {
+      var i = { id: uuid(), persona: S.personaId, viaje: d.id, grupo: 'interesado', aereo: 'definir', visa: false, notas: '' };
+      guardar('guardarInscripcion', { i: i }, function (r) { up(D.inscripciones, r); avisar('Sumada como interesada'); });
+    },
+    grupo: function (d) {
+      var i = X.insc[S.inscId];
+      if (i.grupo !== d.v) guardarInscripcion(i, { grupo: d.v }, 'Ahora está en ' + GRUPO1[d.v]);
+    },
+    aereo: function (d) {
+      var i = X.insc[S.inscId];
+      if (i.aereo !== d.v) guardarInscripcion(i, { aereo: d.v }, 'Aéreo: ' + AEREO.filter(function (a) { return a[0] === d.v; })[0][1].toLowerCase());
+    },
+    visa: function () {
+      var i = X.insc[S.inscId];
+      guardarInscripcion(i, { visa: !i.visa }, i.visa ? 'Visa desmarcada' : 'Visa marcada');
+    },
+    nuevoPago: function () {
+      var i = X.insc[S.inscId], c = calc(i);
+      ir('pago', { f: { tipo: 'pago', id: uuid(), inscripcion: i.id, concepto: c.sena || !c.activo ? 'cuota' : 'seña', monto: c.falta > 0 ? String(c.falta) : '', fecha: hoy(), medio: 'transferencia' } });
+    },
+    concepto: function (d) { S.f.concepto = d.v; render(); },
+    medio: function (d) { S.f.medio = d.v; render(); },
+    nuevaAgencia: function () {
+      var i = X.insc[S.inscId], c = calc(i);
+      ir('agencia', { f: { tipo: 'agencia', id: uuid(), inscripcion: i.id, monto: c.agFalta > 0 ? String(c.agFalta) : '', fecha: hoy() } });
+    },
+    borrar: function (d) {
+      var k = d.t + ':' + d.id;
+      if (S.conf !== k) { S.conf = k; render(); return; }
+      S.conf = null;
+      guardar(d.t === 'Pago' ? 'borrarPago' : 'borrarAgencia', { id: d.id }, function () {
+        quitar(d.t === 'Pago' ? D.pagos : D.agencia, d.id);
+        avisar('Borrado');
+      });
+    }
+  };
+
+  // Envío de formularios
+  var FORMS = {
+    conectar: function () {
+      var url = S.f.url.trim(), token = S.f.token.trim();
+      if (!/^https:\/\/\S+$/.test(url) && !/^http:\/\/(localhost|127\.0\.0\.1)/.test(url)) { S.error = 'La URL tiene que empezar con https://'; render(); return; }
+      if (!token) { S.error = 'Falta la clave'; render(); return; }
+      cfg = { url: url, token: token };
+      S.guardando = true; S.error = ''; render();
+      api('todo').then(function (data) {
+        S.guardando = false; D = data;
+        escribirJSON(CFG_KEY, cfg); escribirJSON(CACHE_KEY, D);
+        S.f = null; S.vista = 'viajes'; S.pila = []; S.syncError = '';
+        render();
+      }).catch(function (e) {
+        S.guardando = false; cfg = null; S.error = e.message; render(); // si falla, no queda guardada
+      });
+    },
+    pago: function () {
+      var f = S.f, m = numero(f.monto);
+      if (!(m > 0)) { S.error = 'Poné un monto mayor a 0'; render(); return; }
+      if (!f.fecha) { S.error = 'Falta la fecha'; render(); return; }
+      var p = { id: f.id, fecha: f.fecha, inscripcion: f.inscripcion, monto: m, concepto: f.concepto, medio: f.medio };
+      guardar('pagar', { p: p }, function (r) {
+        if (!r.ya) up(D.pagos, r);
+        avisar('Pago guardado'); cerrarForm();
+        return !!r.ya;
+      });
+    },
+    agencia: function () {
+      var f = S.f, m = numero(f.monto);
+      if (!(m > 0)) { S.error = 'Poné un monto mayor a 0'; render(); return; }
+      if (!f.fecha) { S.error = 'Falta la fecha'; render(); return; }
+      var a = { id: f.id, fecha: f.fecha, inscripcion: f.inscripcion, monto: m };
+      guardar('agencia', { a: a }, function (r) {
+        if (!r.ya) up(D.agencia, r);
+        avisar('Guardado'); cerrarForm();
+        return !!r.ya;
+      });
+    },
+    viaje: function () {
+      var f = S.f;
+      if (!f.nombre.trim()) { S.error = 'Falta el nombre del viaje'; render(); return; }
+      var v = { id: f.id, nombre: f.nombre, fechas: f.fechas, estado: f.estado, notas: f.notas };
+      var malos = [];
+      [['costo_terrestre', 'terrestre'], ['costo_aereo', 'aéreo'], ['agencia_pax', 'agencia por pax'], ['agencia_aereo', 'agencia por aéreo'], ['cupo', 'cupo']].forEach(function (k) {
+        var s = String(f[k[0]] == null ? '' : f[k[0]]).trim();
+        var n = s === '' ? 0 : numero(s);
+        if (!isFinite(n) || n < 0) malos.push(k[1]);
+        v[k[0]] = n;
+      });
+      if (malos.length) { S.error = 'Revisá: ' + malos.join(', '); render(); return; }
+      var nuevo = f.nuevo;
+      guardar('guardarViaje', { v: v }, function (r) {
+        up(D.viajes, r);
+        avisar(nuevo ? 'Viaje creado' : 'Viaje guardado');
+        if (nuevo) { Object.assign(S, { vista: 'viaje', viajeId: r.id, tab: 'pax', q: '', f: null }); }
+        else cerrarForm();
+      });
+    },
+    persona: function () {
+      var f = S.f;
+      if (!f.nombre.trim()) { S.error = 'Falta el nombre'; render(); return; }
+      var p = { id: f.id, nombre: f.nombre, apellido: f.apellido, telefono: f.telefono, mail: f.mail, notas: f.notas };
+      var datos = { p: p };
+      if (f.nuevo && f.viaje) datos.inscripcion = { id: f.inscId, viaje: f.viaje, grupo: f.grupo, aereo: 'definir', visa: false };
+      var nuevo = f.nuevo;
+      guardar('guardarPersona', datos, function (r) {
+        up(D.personas, r.persona);
+        if (r.inscripcion) up(D.inscripciones, r.inscripcion);
+        avisar(nuevo ? 'Persona cargada' : 'Datos guardados');
+        if (nuevo) {
+          // La pantalla del formulario pasa a ser la ficha: Atrás vuelve a donde estaba antes.
+          if (r.inscripcion) Object.assign(S, { vista: 'ficha', inscId: r.inscripcion.id, f: null });
+          else Object.assign(S, { vista: 'persona', personaId: r.persona.id, f: null });
+        } else cerrarForm();
+      });
+    }
+  };
+
+  // Cierra el formulario y vuelve a la pantalla anterior sin pasar por el historial del navegador.
+  function cerrarForm() {
+    var ant = S.pila.pop();
+    if (ant) Object.assign(S, ant, { f: null, error: '', conf: null });
+    else Object.assign(S, { vista: 'viajes', f: null });
+    ignorarPop = true;
+    try { history.back(); } catch (e) { ignorarPop = false; }
+  }
+
+  app.addEventListener('click', function (e) {
+    var el = e.target.closest('[data-a]');
+    if (!el || el.disabled) return;
+    var f = A[el.getAttribute('data-a')];
+    if (!f) return;
+    e.preventDefault();
+    if (S.conf && el.getAttribute('data-a') !== 'borrar') S.conf = null;
+    f({ id: el.getAttribute('data-id'), v: el.getAttribute('data-v'), t: el.getAttribute('data-t') });
+  });
+  app.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var form = e.target.getAttribute('data-form');
+    if (FORMS[form] && !S.guardando) FORMS[form]();
+  });
+  app.addEventListener('input', function (e) {
+    var t = e.target;
+    var k = t.getAttribute('data-f');
+    if (k && S.f) {
+      S.f[k] = t.value;
+      if (S.vista === 'pago' && k === 'monto') { var d = document.getElementById('despues'); if (d) d.textContent = despuesPago(); }
+      if (S.vista === 'formPersona' && /^(nombre|apellido|telefono|mail)$/.test(k)) { var x = document.getElementById('dup'); if (x) x.innerHTML = cajaDuplicado(); }
+      return;
+    }
+    var q = t.getAttribute('data-q');
+    if (q) {
+      S[q] = t.value;
+      var l = document.getElementById('lista');
+      if (l) l.innerHTML = q === 'q' ? listaViaje() : listaPersonas();
+    }
+  });
+
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) cargar(); });
+  setInterval(function () { if (!document.hidden && !S.f) cargar(); }, 5 * 60 * 1000);
+
+  render();
+  cargar();
+})();
+</script>
+</body>
+</html>
