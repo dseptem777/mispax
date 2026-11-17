@@ -95,6 +95,13 @@ nav.barra button[aria-current="page"] { background: var(--seg); color: var(--tin
 .pie { margin-top: 28px; text-align: center; font-size: 13px; color: var(--suave); display: flex; flex-direction: column; gap: 8px; align-items: center; }
 .buscar input { width: 100%; min-height: 46px; border-radius: 12px; border: 1px solid var(--borde); background: var(--tarjeta); padding: 0 14px; font-size: 16px; margin-bottom: 10px; }
 .sync { font-size: 13px; color: var(--av); }
+/* Que se note el toque y que está guardando (Apps Script tarda 2–5 s). */
+button:active:not(:disabled) { transform: scale(.97); }
+.seg button:active:not(:disabled), .tab:active:not(:disabled) { background: var(--gris); }
+button[aria-busy="true"] { opacity: 1 !important; position: relative; padding-right: 30px; }
+button[aria-busy="true"]::after { content: ''; position: absolute; right: 10px; top: 50%; width: 14px; height: 14px; margin-top: -7px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: girar .7s linear infinite; }
+@keyframes girar { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { button[aria-busy="true"]::after { animation: latir 1.2s ease-in-out infinite; border-right-color: currentColor; } @keyframes latir { 50% { opacity: .3; } } button:active:not(:disabled) { transform: none; } }
 /* Compu (pedido de Ariel 13/11, adaptado del panel de Tai Chi): desde 900 px la barra de abajo pasa a menú a la izquierda,
    el tablero muestra los 4 números en fila y las listas van en columnas. La ficha y los formularios siguen angostos.
    Solo CSS: no cambia ningún comportamiento. En el celu no cambia nada. */
@@ -129,6 +136,7 @@ nav.barra button[aria-current="page"] { background: var(--seg); color: var(--tin
   var CFG_KEY = 'contemplo_conexion';
   var CACHE_KEY = 'contemplo_cache';
   var GRUPOS = [['pax', 'PAX'], ['reservado', 'Reservados'], ['interesado', 'Interesados'], ['descartado', 'Descartados']];
+  var GRUPOS_SEG = [['interesado', 'Interes.'], ['reservado', 'Reserv.'], ['pax', 'PAX'], ['descartado', 'Descart.']];
   var GRUPO1 = { pax: 'PAX', reservado: 'Reservado', interesado: 'Interesado', descartado: 'Descartado' };
   var AEREO = [['tati', 'Con Tati'], ['propio', 'Por su cuenta'], ['definir', 'A definir']];
   var CONCEPTOS = [['seña', 'Seña'], ['cuota', 'Cuota'], ['aéreo', 'Aéreo'], ['otro', 'Otro']];
@@ -148,7 +156,7 @@ nav.barra button[aria-current="page"] { background: var(--seg); color: var(--tin
   var S = {
     vista: cfg ? 'viajes' : 'conectar', viajeId: null, inscId: null, personaId: null,
     tab: 'pax', q: '', qp: '', filtroP: 'todas',
-    f: null, error: '', guardando: false, conf: null, aviso: '', syncError: '', pila: []
+    f: null, error: '', guardando: false, conf: null, aviso: '', syncError: '', pila: [], tocado: null
   };
 
   // ---------- Utilidades ----------
@@ -300,14 +308,17 @@ nav.barra button[aria-current="page"] { background: var(--seg); color: var(--tin
   function guardar(accion, datos, alListo) {
     if (S.guardando) return;
     S.guardando = true; S.error = '';
+    var lento = setTimeout(function () { if (S.guardando) { S.aviso = 'Guardando…'; render(); } }, 1000);
     render();
     api(accion, datos).then(function (r) {
+      clearTimeout(lento); if (S.aviso === 'Guardando…') S.aviso = ''; S.tocado = null;
       S.guardando = false;
       var recargar = alListo(r);
       escribirJSON(CACHE_KEY, D);
       render();
       if (recargar) cargar();
     }).catch(function (e) {
+      clearTimeout(lento); if (S.aviso === 'Guardando…') S.aviso = ''; S.tocado = null;
       S.guardando = false;
       S.error = e.message;
       render();
@@ -479,10 +490,16 @@ nav.barra button[aria-current="page"] { background: var(--seg); color: var(--tin
     }).filter(Boolean);
     var h = cabecera(esc(nombreDe(p)), esc(v.nombre || '') + (otros.length ? '<br>También: ' + otros.join(', ') : ''),
       '<button class="txtbtn" data-a="editarPersona" data-id="' + esc(p.id) + '">Editar datos</button>', true);
-    h += seg('grupo', [['interesado', 'Interes.'], ['reservado', 'Reserv.'], ['pax', 'PAX'], ['descartado', 'Descart.']], i.grupo);
+    h += seg('grupo', GRUPOS_SEG, i.grupo);
     h += contacto(p);
     h += cajaError();
+    h += cuerpoFicha(i, c);
+    return h + barra();
+  }
 
+  function cuerpoFicha(i, c) {
+    var v = c.v;
+    var h = '';
     h += '<h2>La cuenta</h2><div class="tarjeta cuenta">';
     if (c.activo) {
       h += '<div class="fila"><span>Terrestre</span><span>' + usd(v.costo_terrestre) + '</span></div>' +
@@ -525,12 +542,12 @@ nav.barra button[aria-current="page"] { background: var(--seg); color: var(--tin
       h += '</div>';
     }
     h += '<div class="acciones"><button class="secu" data-a="nuevaAgencia">Pasé plata a la agencia</button></div>';
-    return h + barra();
+    return h;
   }
 
-  function botonBorrar(tipo, id) {
+  function botonBorrar(tipo, id, txt) {
     var conf = S.conf === tipo + ':' + id;
-    return '<button class="borrar' + (conf ? ' conf' : '') + '" data-a="borrar" data-t="' + tipo + '" data-id="' + esc(id) + '"' + (S.guardando ? ' disabled' : '') + '>' + (conf ? '¿Seguro? Borrar' : 'Borrar') + '</button>';
+    return '<button class="borrar' + (conf ? ' conf' : '') + '" data-a="borrar" data-t="' + tipo + '" data-id="' + esc(id) + '"' + (S.guardando ? ' disabled' : '') + '>' + (conf ? '¿Seguro? ' + (txt || 'Borrar') : (txt || 'Borrar')) + '</button>';
   }
 
   function contacto(p) {
@@ -618,7 +635,15 @@ nav.barra button[aria-current="page"] { background: var(--seg); color: var(--tin
       campo('telefono', 'Teléfono', f.telefono, 'type="tel" autocomplete="off"', 'Con código de área, por ejemplo +54 9 11 1234 5678') +
       campo('mail', 'Mail', f.mail, 'type="email" autocomplete="off" autocapitalize="off"') +
       '<div id="dup">' + cajaDuplicado() + '</div>';
-    if (f.nuevo && v) h += '<div class="campo"><span class="etq">Grupo en este viaje</span>' + seg('grupoF', [['interesado', 'Interes.'], ['reservado', 'Reserv.'], ['pax', 'PAX'], ['descartado', 'Descart.']], f.grupo) + '</div>';
+    if (f.nuevo) {
+      var vs = D.viajes.filter(function (t) { return t.estado !== 'terminado' || t.id === f.viaje; });
+      vs.sort(function (a, b) { return (ORDEN_ESTADO[a.estado] - ORDEN_ESTADO[b.estado]) || String(a.nombre).localeCompare(String(b.nombre)); });
+      h += '<div class="campo"><span class="etq">Viaje</span><div class="tabs" role="group" aria-label="Viaje">' +
+        [{ id: '', nombre: 'Ninguno' }].concat(vs).map(function (t) {
+          return '<button type="button" class="tab" data-a="viajeF" data-v="' + esc(t.id) + '" aria-pressed="' + ((t.id || null) === (f.viaje || null)) + '"' + (S.guardando ? ' disabled' : '') + '>' + esc(t.nombre) + '</button>';
+        }).join('') + '</div></div>';
+    }
+    if (f.nuevo && v) h += '<div class="campo"><span class="etq">Grupo en este viaje</span>' + seg('grupoF', GRUPOS_SEG, f.grupo) + '</div>';
     h += '<div class="campo"><label for="f-notas">Notas</label><textarea id="f-notas" data-f="notas">' + esc(f.notas) + '</textarea></div>';
     return h + botonGuardar(f.nuevo ? 'Guardar' : 'Guardar cambios') + '</form>';
   }
@@ -681,14 +706,20 @@ nav.barra button[aria-current="page"] { background: var(--seg); color: var(--tin
     var h = cabecera(esc(nombreDe(p)), '', '<button class="txtbtn" data-a="editarPersona" data-id="' + esc(p.id) + '">Editar datos</button>', true);
     h += contacto(p) + cajaError();
     var inscs = X.inscsPersona[p.id] || [];
-    h += '<h2>Viajes</h2><div class="lista">';
-    if (!inscs.length) h += '<div class="sub">Todavía no está en ningún viaje.</div>';
-    inscs.forEach(function (i) {
-      var v = X.viaje[i.viaje] || {}, c = calc(i), f = textoFalta(c);
-      h += '<button class="item" data-a="verFicha" data-id="' + esc(i.id) + '"><div class="fila" style="align-items:baseline"><span class="nombre">' + esc(v.nombre) + '</span><span class="estado">' + GRUPO1[i.grupo] + '</span></div>' +
-        (f ? '<span class="' + f.cl + '">' + f.t + '</span>' : '') + '</button>';
-    });
-    h += '</div>';
+    if (inscs.length === 1) {
+      // ponytail: grupo/aereo/visa/nuevoPago/nuevaAgencia leen S.inscId; con un solo viaje lo fijamos acá en vez de pasar ids.
+      var i = inscs[0]; S.inscId = i.id;
+      h += '<h2>' + esc((X.viaje[i.viaje] || {}).nombre) + '</h2>' + seg('grupo', GRUPOS_SEG, i.grupo) + cuerpoFicha(i, calc(i));
+    } else {
+      h += '<h2>Viajes</h2><div class="lista">';
+      if (!inscs.length) h += '<div class="sub">Todavía no está en ningún viaje.</div>';
+      inscs.forEach(function (i) {
+        var v = X.viaje[i.viaje] || {}, c = calc(i), f = textoFalta(c);
+        h += '<button class="item" data-a="verFicha" data-id="' + esc(i.id) + '"><div class="fila" style="align-items:baseline"><span class="nombre">' + esc(v.nombre) + '</span><span class="estado">' + GRUPO1[i.grupo] + ' · Ver ficha ›</span></div>' +
+          (f ? '<span class="' + f.cl + '">' + f.t + '</span>' : '') + chipsDe(i, c) + '</button>';
+      });
+      h += '</div>';
+    }
     var libres = D.viajes.filter(function (v) { return v.estado !== 'terminado' && !inscs.some(function (i) { return i.viaje === v.id; }); });
     if (libres.length) {
       h += '<h2>Sumar como interesada a</h2><div class="lista">';
@@ -697,6 +728,7 @@ nav.barra button[aria-current="page"] { background: var(--seg); color: var(--tin
       });
       h += '</div>';
     }
+    h += '<div class="acciones">' + botonBorrar('Persona', p.id, 'Borrar persona') + '</div>';
     return h + barra();
   }
 
@@ -726,6 +758,13 @@ nav.barra button[aria-current="page"] { background: var(--seg); color: var(--tin
     if (foco) {
       var el = document.getElementById(foco);
       if (el) { el.focus(); try { if (pos != null) el.setSelectionRange(pos, pos); } catch (e) {} }
+    }
+    // El botón que se tocó muestra que está guardando.
+    if (S.guardando && S.tocado) {
+      var b = [].filter.call(app.querySelectorAll('[data-a="' + S.tocado[0] + '"]'), function (x) {
+        return x.getAttribute('data-v') === S.tocado[1] && x.getAttribute('data-id') === S.tocado[2];
+      })[0];
+      if (b) b.setAttribute('aria-busy', 'true');
     }
   }
 
@@ -769,6 +808,7 @@ nav.barra button[aria-current="page"] { background: var(--seg); color: var(--tin
       ir('formPersona', { f: Object.assign({ tipo: 'persona', nuevo: false, viaje: null }, p) });
     },
     grupoF: function (d) { S.f.grupo = d.v; render(); },
+    viajeF: function (d) { S.f.viaje = d.v || null; render(); },
     usarExistente: function (d) {
       var f = S.f;
       var ya = f.viaje && (X.inscsPersona[d.id] || []).filter(function (i) { return i.viaje === f.viaje; })[0];
@@ -811,6 +851,19 @@ nav.barra button[aria-current="page"] { background: var(--seg); color: var(--tin
       var k = d.t + ':' + d.id;
       if (S.conf !== k) { S.conf = k; render(); return; }
       S.conf = null;
+      if (d.t === 'Persona') {
+        var mias = X.inscsPersona[d.id] || [];
+        if (mias.some(function (i) { return (X.pagosDe[i.id] || []).length || (X.agDe[i.id] || []).length; })) {
+          S.error = 'Tiene pagos cargados: borralos primero o pasala a Descartado'; render(); return;
+        }
+        guardar('borrarPersona', { id: d.id }, function () {
+          quitar(D.personas, d.id);
+          mias.forEach(function (i) { quitar(D.inscripciones, i.id); });
+          avisar('Persona borrada');
+          cerrarForm();
+        });
+        return;
+      }
       guardar(d.t === 'Pago' ? 'borrarPago' : 'borrarAgencia', { id: d.id }, function () {
         quitar(d.t === 'Pago' ? D.pagos : D.agencia, d.id);
         avisar('Borrado');
@@ -913,12 +966,13 @@ nav.barra button[aria-current="page"] { background: var(--seg); color: var(--tin
     if (!f) return;
     e.preventDefault();
     if (S.conf && el.getAttribute('data-a') !== 'borrar') S.conf = null;
+    S.tocado = [el.getAttribute('data-a'), el.getAttribute('data-v'), el.getAttribute('data-id')];
     f({ id: el.getAttribute('data-id'), v: el.getAttribute('data-v'), t: el.getAttribute('data-t') });
   });
   app.addEventListener('submit', function (e) {
     e.preventDefault();
     var form = e.target.getAttribute('data-form');
-    if (FORMS[form] && !S.guardando) FORMS[form]();
+    if (FORMS[form] && !S.guardando) { S.tocado = null; FORMS[form](); }
   });
   app.addEventListener('input', function (e) {
     var t = e.target;
