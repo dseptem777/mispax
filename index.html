@@ -571,7 +571,7 @@ button[aria-busy="true"]::after { content: ''; position: absolute; right: 10px; 
   }
 
   function botonGuardar(texto, falta) {
-    return '<div class="acciones">' + cajaError() + (falta ? '<span class="ayuda">' + falta + '</span>' : '') + '<button class="prim" type="submit"' + (S.guardando || falta ? ' disabled' : '') + '>' +
+    return '<div class="acciones">' + cajaError() + (falta ? '<span class="ayuda">' + falta + '</span>' : '') + '<button class="prim" type="submit"' + (S.guardando ? ' disabled aria-busy="true"' : '') + '>' +
       (S.guardando ? 'Guardando…' : (S.error ? 'Reintentar' : texto)) + '</button></div>';
   }
 
@@ -639,7 +639,7 @@ button[aria-busy="true"]::after { content: ''; position: absolute; right: 10px; 
     h += '<form data-form="persona">' +
       campo('nombre', 'Nombre', f.nombre, 'autocomplete="off" autocapitalize="words"') +
       campo('apellido', 'Apellido', f.apellido, 'autocomplete="off" autocapitalize="words"') +
-      (cp && !f.sinTel ? '<div class="campo"><span class="etq">Teléfono</span><div class="tarjeta" style="overflow-wrap:anywhere">' + esc(f.telefono) + '</div></div>'
+      (cp && !f.sinTel ? '<div class="campo"><span class="etq">Teléfono</span><div style="overflow-wrap:anywhere;font-weight:600;font-size:17px">' + esc(f.telefono) + '</div></div>'
         : (cp ? '<div class="caja av">Este contacto no tiene teléfono.</div>' : '') +
           campo('telefono', 'Teléfono', f.telefono, 'type="tel" autocomplete="off"', 'Con código de área, por ejemplo +54 9 11 1234 5678')) +
       campo('mail', 'Mail', f.mail, 'type="email" autocomplete="off" autocapitalize="off"') +
@@ -650,7 +650,7 @@ button[aria-busy="true"]::after { content: ''; position: absolute; right: 10px; 
       h += '<div class="campo"><span class="etq">Viaje</span><div class="tabs" role="group" aria-label="Viaje">' +
         (cp ? vs : [{ id: '', nombre: 'Ninguno' }].concat(vs)).map(function (t) {
           return '<button type="button" class="tab" data-a="viajeF" data-v="' + esc(t.id) + '" aria-pressed="' + ((t.id || null) === (f.viaje || null)) + '"' + (S.guardando ? ' disabled' : '') + '>' + esc(t.nombre) + '</button>';
-        }).join('') + '</div></div>';
+        }).join('') + '</div>' + (cp && f.falta && !f.viaje ? '<div class="caja av">Elegí el viaje.</div>' : '') + '</div>';
     }
     if (f.nuevo && (v || cp)) h += '<div class="campo"><span class="etq">Grupo en este viaje</span>' + seg('grupoF', GRUPOS_SEG, f.grupo) + '</div>';
     h += '<div class="campo"><label for="f-notas">Notas</label><textarea id="f-notas" data-f="notas">' + esc(f.notas) + '</textarea></div>';
@@ -748,8 +748,8 @@ button[aria-busy="true"]::after { content: ''; position: absolute; right: 10px; 
     return '<h2>Sumar a otro viaje</h2><div class="tabs" role="group" aria-label="Viaje">' + libres.map(function (v) {
       return '<button type="button" class="tab" data-a="viajeS" data-v="' + esc(v.id) + '" aria-pressed="' + (v.id === s.viaje) + '"' + (S.guardando ? ' disabled' : '') + '>' + esc(v.nombre) + '</button>';
     }).join('') + '</div>' + seg('grupoS', GRUPOS_SEG, s.grupo) +
-      '<div class="acciones">' + (s.viaje ? '' : '<span class="ayuda">Elegí el viaje.</span>') +
-      '<button class="secu" data-a="sumar"' + (S.guardando || !s.viaje ? ' disabled' : '') + '>Sumar</button></div>';
+      '<div class="acciones">' + (s.viaje ? '' : (s.falta ? '<div class="caja av">Elegí el viaje.</div>' : '<span class="ayuda">Elegí el viaje.</span>')) +
+      '<button class="secu" data-a="sumar"' + (S.guardando ? ' disabled aria-busy="true"' : '') + '>' + (S.guardando ? 'Guardando…' : 'Sumar') + '</button></div>';
   }
 
   function chipCola() { var q = S.cola; return q && q.items.length > 1 ? '<span class="chip">' + (q.i + 1) + ' de ' + q.items.length + '</span>' : ''; }
@@ -951,7 +951,8 @@ button[aria-busy="true"]::after { content: ''; position: absolute; right: 10px; 
     grupoS: function (d) { S.sum.grupo = d.v; render(); },
     sumar: function () {
       var s = S.sum;
-      if (!s || !s.viaje) return;
+      if (!s) return;
+      if (!s.viaje) { s.falta = true; render(); return; } // botón siempre tocable: si falta el viaje, lo dice
       var i = { id: s.id, persona: s.persona, viaje: s.viaje, grupo: s.grupo, aereo: 'definir', visa: false, notas: '' };
       guardar('guardarInscripcion', { i: i }, function (r) {
         up(D.inscripciones, r); S.sum = null;
@@ -1070,7 +1071,7 @@ button[aria-busy="true"]::after { content: ''; position: absolute; right: 10px; 
     persona: function () {
       var f = S.f;
       if (!f.nombre.trim()) { S.error = 'Falta el nombre'; render(); return; }
-      if (f.compartido && !f.viaje) { S.error = 'Elegí el viaje'; render(); return; }
+      if (f.compartido && !f.viaje) { f.falta = true; render(); return; } // aviso al lado de los viajes, sin "Reintentar"
       var p = { id: f.id, nombre: f.nombre, apellido: f.apellido, telefono: f.telefono, mail: f.mail, notas: f.notas };
       var datos = { p: p };
       if (f.nuevo && f.viaje) datos.inscripcion = { id: f.inscId, viaje: f.viaje, grupo: f.grupo, aereo: 'definir', visa: false };
