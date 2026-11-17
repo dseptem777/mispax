@@ -101,8 +101,9 @@ button:active:not(:disabled) { transform: scale(.97); }
 .seg button:active:not(:disabled), .tab:active:not(:disabled) { background: var(--gris); }
 button[aria-busy="true"] { opacity: 1 !important; position: relative; padding-right: 30px; }
 button[aria-busy="true"]::after { content: ''; position: absolute; right: 10px; top: 50%; width: 14px; height: 14px; margin-top: -7px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: girar .7s linear infinite; }
+.sub[aria-busy="true"]::before { content: ''; display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: girar .7s linear infinite; }
 @keyframes girar { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { button[aria-busy="true"]::after { animation: latir 1.2s ease-in-out infinite; border-right-color: currentColor; } @keyframes latir { 50% { opacity: .3; } } button:active:not(:disabled) { transform: none; } }
+@media (prefers-reduced-motion: reduce) { button[aria-busy="true"]::after, .sub[aria-busy="true"]::before { animation: latir 1.2s ease-in-out infinite; border-right-color: currentColor; } @keyframes latir { 50% { opacity: .3; } } button:active:not(:disabled) { transform: none; } }
 /* Compu (pedido de Ariel 13/11, adaptado del panel de Tai Chi): desde 900 px la barra de abajo pasa a menú a la izquierda,
    el tablero muestra los 4 números en fila y las listas van en columnas. La ficha y los formularios siguen angostos.
    Solo CSS: no cambia ningún comportamiento. En el celu no cambia nada. */
@@ -818,22 +819,24 @@ button[aria-busy="true"]::after { content: ''; position: absolute; right: 10px; 
   }
 
   var pendiente = null; // contactos leídos del caché, esperando conexión y datos frescos
+  var compartiendo = /[?&]compartido=1/.test(location.search); // muestra "Cargando el contacto…" hasta que arranca la cola
+  function sinCompartido() { compartiendo = false; render(); }
   function leerCompartido() {
-    if (!/[?&]compartido=1/.test(location.search)) return;
+    if (!compartiendo) return;
     try { history.replaceState(history.state, '', location.pathname); } catch (e) {}
-    if (!window.caches) return;
+    if (!window.caches) return sinCompartido();
     caches.open('contemplo-compartir').then(function (c) {
       return c.match('./compartido.vcf').then(function (r) { if (r) { c.delete('./compartido.vcf'); return r.text(); } });
     }).then(function (t) {
-      if (t == null) return;
+      if (t == null) return sinCompartido();
       pendiente = leerVcf(t);
-      if (!pendiente.length) { pendiente = null; avisar('No pude leer el contacto'); render(); return; }
+      if (!pendiente.length) { pendiente = null; avisar('No pude leer el contacto'); return sinCompartido(); }
       arrancarCola();
-    }).catch(function () {});
+    }).catch(sinCompartido);
   }
   function arrancarCola() {
     if (!pendiente || !cfg || !D || !fresco) return;
-    S.cola = { items: pendiente, i: -1, ok: 0, salt: 0, ultimo: '' }; pendiente = null;
+    S.cola = { items: pendiente, i: -1, ok: 0, salt: 0, ultimo: '' }; pendiente = null; compartiendo = false;
     S.pila = []; siguiente();
   }
   // Pasa al próximo contacto (sin tocar el historial: así window.close() puede cerrar la app al final).
@@ -870,7 +873,7 @@ button[aria-busy="true"]::after { content: ''; position: absolute; right: 10px; 
     try { pos = foco && document.activeElement.selectionStart; } catch (e) {}
     var h, cl = S.vista;
     if (S.vista === 'conectar' || !cfg) { h = vConectar(); cl = 'conectar'; }
-    else if (!D) h = '<header><h1>ConTemplo PAX</h1><div class="sub">' + (S.syncError ? esc(S.syncError) : 'Cargando…') + '</div>' +
+    else if (!D || compartiendo) h = '<header><h1>ConTemplo PAX</h1><div class="sub"' + (S.syncError ? '>' + esc(S.syncError) : ' aria-busy="true">' + (compartiendo ? 'Cargando el contacto…' : 'Cargando…')) + '</div>' +
       (S.syncError ? '<button class="secu" data-a="recargar" style="margin-top:12px">Reintentar</button><button class="txtbtn" data-a="desconectar">Cambiar conexión</button>' : '') + '</header>', cl = 'cargando';
     else h = ({
       viajes: vViajes, viaje: vViaje, ficha: vFicha, pago: vPago, agencia: vAgencia,
